@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+  server:
+    image: dlord/spigot
+    ports:
+      - "${EXPOSED_PORT}:25565"
+      - "${EXPOSED_DYNMAP_PORT}:8888"
+    environment:
+      - "DEFAULT_OP=${OP}"
+      - "MINECRAFT_VERSION=${MINECRAFT_VERSION}"
+      - MINECRAFT_EULA=true
+      - "ONLINE_MODE=${PAID_ONLY}"
+      - "VIRTUAL_HOST=${LETSENCRYPT_HOST}"
+      - VIRTUAL_NETWORK=nginx-proxy
+      - "VIRTUAL_PORT=${LETSENCRYPT_PORT}"
+      - "LETSENCRYPT_HOST=${LETSENCRYPT_HOST}"
+      - "LETSENCRYPT_EMAIL=${LETSENCRYPT_MAIL}"
+    env_file:
+      - .env
+    volumes:
+      - "${PATH_TO_DATA}:/var/lib/minecraft"
+      - "${PATH_TO_SERVER}:/opt/minecraft"
+    networks:
+      - proxy-tier
+      - spigot
+  db:
+    image: mariadb
+    environment:
+      - "MYSQL_ROOT_PASSWORD=${DB_PASS}"
+      - MYSQL_DATABASE=spigot
+
+
+networks:
+  proxy-tier:
+    external:
+      name: nginx-proxy
+  spigot:
+    external:
+        name: spigot
